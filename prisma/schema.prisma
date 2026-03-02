@@ -1,0 +1,146 @@
+// This is your Prisma schema file for Gotham Project Dashboard
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// PROJECT MANAGEMENT TABLES
+// ============================================================================
+
+model Project {
+  id                Int            @id @default(autoincrement())
+  name              String
+  githubRepo        String         @unique @map("github_repo")
+  stage             String         @default("idea")
+  lastEvent         String?        @map("last_event")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+  phases            Phase[]
+  githubEvents      GitHubEvent[]
+  
+  @@map("projects")
+}
+
+model Phase {
+  id                  Int       @id @default(autoincrement())
+  projectId           Int       @map("project_id")
+  name                String
+  description         String?
+  orderIndex          Int       @default(0) @map("order_index")
+  targetMonths        String?   @map("target_months")
+  weightPercent       Float     @default(0) @map("weight_percent")
+  completionPercent   Float     @default(0) @map("completion_percent")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  project             Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  modules             Module[]
+  
+  @@index([projectId])
+  @@map("phases")
+}
+
+model Module {
+  id                  Int       @id @default(autoincrement())
+  phaseId             Int       @map("phase_id")
+  name                String
+  description         String?
+  weightPercent       Float     @default(0) @map("weight_percent")
+  completionPercent   Float     @default(0) @map("completion_percent")
+  orderIndex          Int       @default(0) @map("order_index")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  phase               Phase     @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  tasks               Task[]
+  
+  @@index([phaseId])
+  @@map("modules")
+}
+
+model Task {
+  id                Int       @id @default(autoincrement())
+  moduleId          Int       @map("module_id")
+  taskId            String    @unique @map("task_id")
+  description       String
+  priority          String    @default("Medium")
+  estimatedHours    Float     @default(4) @map("estimated_hours")
+  status            String    @default("not_started")
+  githubIssueId     Int?      @map("github_issue_id")
+  githubPrId        Int?      @map("github_pr_id")
+  githubBranch      String?   @map("github_branch")
+  assignedTo        String?   @map("assigned_to")
+  completedAt       DateTime? @map("completed_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  module            Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  issueSync         GitHubIssueSync?
+  
+  @@index([moduleId])
+  @@index([status])
+  @@index([priority])
+  @@map("tasks")
+}
+
+// ============================================================================
+// GITHUB INTEGRATION TABLES
+// ============================================================================
+
+model GitHubEvent {
+  id                Int      @id @default(autoincrement())
+  projectId         Int      @map("project_id")
+  eventType         String   @map("event_type")
+  action            String?
+  payload           String
+  stageChangedFrom  String?  @map("stage_changed_from")
+  stageChangedTo    String?  @map("stage_changed_to")
+  taskId            String?  @map("task_id")
+  createdAt         DateTime @default(now()) @map("created_at")
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  @@index([projectId])
+  @@index([eventType])
+  @@map("github_events")
+}
+
+model GitHubIssueSync {
+  id                Int       @id @default(autoincrement())
+  taskId            String    @unique @map("task_id")
+  githubIssueId     Int       @map("github_issue_id")
+  githubIssueNumber Int       @map("github_issue_number")
+  githubIssueUrl    String    @map("github_issue_url")
+  syncStatus        String    @default("pending") @map("sync_status")
+  lastSyncedAt      DateTime? @map("last_synced_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  task              Task      @relation(fields: [taskId], references: [taskId], onDelete: Cascade)
+  
+  @@index([taskId])
+  @@index([syncStatus])
+  @@map("github_issue_sync")
+}
+
+model GitHubCredentials {
+  id             Int      @id @default(autoincrement())
+  repoName       String   @unique @map("repo_name")
+  accessToken    String   @map("access_token")
+  webhookSecret  String?  @map("webhook_secret")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  
+  @@map("github_credentials")
+}
+
+model IssueCreationQueue {
+  id            Int       @id @default(autoincrement())
+  taskId        String    @map("task_id")
+  status        String    @default("pending")
+  errorMessage  String?   @map("error_message")
+  retryCount    Int       @default(0) @map("retry_count")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  processedAt   DateTime? @map("processed_at")
+  
+  @@index([status])
+  @@map("issue_creation_queue")
+}
