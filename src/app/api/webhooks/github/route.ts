@@ -68,7 +68,7 @@ function resolvePipelineStage(event: string, payload: any): string | null {
 
 export async function POST(request: Request) {
   try {
-    const event = request.headers.get('x-github-event')
+    const event = request.headers.get('x-github-event') ?? 'unknown'
     const signature = request.headers.get('x-hub-signature-256')
     const rawBody = await request.text()
     const payload = JSON.parse(rawBody)
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
     }
 
     // Resolve pipeline stage
-    const newStage = resolvePipelineStage(event || '', payload)
+    const newStage = resolvePipelineStage(event, payload)
     
     // Extract task ID from PR/Issue
     const taskId = extractTaskIdFromPayload(payload)
