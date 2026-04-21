@@ -1,0 +1,1 @@
+Nothing needs to be added to the .gitignore file since the changes only include markdown documentation files (ARCHITECTURE.md, DEPLOYMENT_PLAN.md, README.md) which are source/config files and should not be ignored.

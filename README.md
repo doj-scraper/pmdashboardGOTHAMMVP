@@ -88,11 +88,28 @@ Ready to build something amazing? Start chatting with Z.ai at [chat.z.ai](https:
 
 ```
 src/
-├── app/                 # Next.js App Router pages
-├── components/          # Reusable React components
-│   └── ui/             # shadcn/ui components
-├── hooks/              # Custom React hooks
-└── lib/                # Utility functions and configurations
+├── app/                    # Next.js App Router pages and routes
+│   ├── api/               # API routes
+│   │   ├── github/        # GitHub integration endpoints
+│   │   ├── modules/       # Module-related endpoints
+│   │   ├── phases/        # Phase-related endpoints
+│   │   ├── projects/      # Project-related endpoints
+│   │   ├── sse/           # Server-sent events endpoints
+│   │   ├── stats/         # Statistics endpoints
+│   │   ├── tasks/         # Task-related endpoints
+│   │   └── webhooks/      # Webhook endpoints
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Home page
+├── components/            # Reusable React components
+│   ├── dashboard/         # Dashboard-specific components
+│   └── ui/               # shadcn/ui components
+├── hooks/                # Custom React hooks
+│   ├── use-mobile.ts     # Mobile device detection hook
+│   └── use-toast.ts      # Toast notification hook
+└── lib/                  # Utility functions and configurations
+    ├── db.ts             # Database connection utilities
+    └── utils.ts          # General utility functions
 ```
 
 ## 🎨 Available Features & Components
